@@ -26,7 +26,13 @@ RUN npm i -g nodemon
 RUN apk add -U --no-cache \
   ip6tables iptables \
   wireguard-tools \
-  dumb-init
+  dumb-init \
+  coreutils \
+  openrc
+
+COPY dnscrypt-proxy.toml /etc/dnscrypt-proxy/
+RUN apk add dnscrypt-proxy
+COPY dnscrypt-proxy.toml /etc/dnscrypt-proxy/
 
 # Expose Ports
 EXPOSE 51820/udp
@@ -35,6 +41,8 @@ EXPOSE 51821/tcp
 # Set Environment
 ENV DEBUG=Server,WireGuard
 
-# Run Web UI
+# Run VPN
 WORKDIR /app
-CMD ["/usr/bin/dumb-init", "node", "server.js"]
+COPY entrypoint.sh /app
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["/usr/bin/dumb-init", "./entrypoint.sh"]
